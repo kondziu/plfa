@@ -98,6 +98,7 @@ _ =
 
 -- Example *-example
 
+_ : 3 * 4 ≡ 12
 _ =
   begin
     3 * 4
@@ -149,7 +150,7 @@ _ =
 
 _∸_ : ℕ → ℕ → ℕ
 m ∸ zero = m
-zero ∸ suc n = zero
+zero ∸ n = zero
 suc m ∸ suc n = m ∸ n
 
 _ =
@@ -192,7 +193,7 @@ _ =
 _ =
   begin
     3 ∸ 5
-  ≡⟨⟩
+  ≡⟨⟩            -- <------ I figured out a name for these: they're jellyfish
     2 ∸ 4
   ≡⟨⟩
     1 ∸ 3
@@ -372,5 +373,7 @@ _ =
 
 -- import Data.Nat using (ℕ; zero; suc; _+_; _*_; _^_; _∸_)
 
-
-
+-- Keystrokes:
+-- c-c c-n evaluate expression
+-- 
+-- install plugin called which key
