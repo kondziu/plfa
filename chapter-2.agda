@@ -155,8 +155,8 @@ _ =
     (suc m) + zero               -- so that we can end up with   
   ≡⟨⟩                             -- suc ::rhs of initial proposition::
     suc (m + zero)
-  ≡⟨ {!cong suc ?!} ⟩   
-  --≡⟨ cong suc (+-identity⃗ m) ⟩
+  --≡⟨ {!cong suc ?!} ⟩   
+  ≡⟨ cong suc (+-identity⃗ m) ⟩
     suc m
   ∎
 
@@ -185,3 +185,87 @@ _ =
 -- PROPOSITION
 
 +-comm : ∀ (m n : ℕ) → m + n ≡ n + m
++-comm m zero =
+    m + zero
+  ≡⟨ +-identity⃗ m ⟩ -- from LEMMA: plus has left identity zero
+    m
+  ≡⟨⟩ -- from reverse base case 
+    zero + m
+  ∎
++-comm m (suc n) =
+    m + (suc n)                -- starts with the lhs of +-comm
+  ≡⟨ +-suc m n ⟩                -- from LEMMA 
+    suc (m + n)                  -- now we have the comm inductive case on the inside
+                                -- and a suc on the outside, so I can apply cong
+  ≡⟨ cong suc (+-comm m n)  ⟩   -- from cong-ing the inductive case
+    suc (n + m)                -- almost there
+  ≡⟨⟩                           -- from reverse of base case of naturals
+    (suc n) + m                 -- ends with the rhs of +-comm
+  ∎
+
+-- CCOORROOLLAARRYY: rearranging
+
++-rearrange : ∀ (m n p q : ℕ) → (m + n) + (p + q) ≡ m + (n + p) + q
++-rearrange m n p q =
+  begin
+    (m + n) + (p + q)
+  ≡⟨ +-assoc m n (p + q) ⟩ -- from associativity
+    m + (n + (p + q))
+  ≡⟨ cong (m +_) (sym (+-assoc n p q)) ⟩ -- from cong on reverse associativity with preceding m +
+                                  -- XXX not really sure how to read (m +_): apply m with arg +_?
+                                  -- XXX what is this sym stuff?
+                                  -- sym X represents what i keep refering to as "reverse X"
+    m + ((n + p) + q)
+  ≡⟨ sym (+-assoc m (n + p) q) ⟩   -- from reverse associativity
+    (m + (n + p)) + q
+  ≡⟨⟩
+    m + (n + p) + q
+  ∎
+
+-- EXERCISE finite-+-assoc
+
+-- TODO
+
+-- ASSOCIATIVITY WITH REWRITE
+
+-- What is rewrite?
+-- When is rewrite used?
+
+--+-assoc' : ∀ (m n p : ℕ) → (m + n) + p ≡ m + (n + p)
+--+-assoc' zero n p = refl
+--+-assoc' (suc m) n p rewrite +-assoc' m n p = refl             -- O.O
+--
+--+-identity' : ∀ (n : ℕ) → n + zero ≡ n
+--+-identity' zero = refl
+--+-identity' (suc n) rewrite +-identity' n = refl
+--
+--+-suc' : ∀ (m n : ℕ) → m + suc(n) ≡ suc(m + n)
+--+-suc' zero n = refl
+--+-suc' (suc m) n rewrite +-suc' m n = refl
+--
+--+-comm' : ∀ (m n : ℕ) → m + n ≡ n + m
+--+-comm' m zero rewrite +-identity' m = refl
+--+-comm' m (suc n) rewrite +-suc' m n | +-comm' m n = refl
+
+-- BUILDING PROOFS INTERACTIVELY
+
++-assoc' : ∀ (m n p : ℕ) → (m + n) + p ≡ m + (n + p)
++-assoc' zero n p = refl                               -- what is the goal precisely?
++-assoc' (suc m) n p rewrite +-assoc' m n p = refl     -- I feel cheated --I had to type rewrite by hand?
+
+
+-- now you're thinking with ---portals--- holes?
+
++-identity' : ∀ (n : ℕ) → n + zero ≡ n
++-identity' zero = refl
++-identity' (suc n) rewrite +-identity' n = refl
+
++-suc' : ∀ (m n : ℕ) → m + suc(n) ≡ suc(m + n)
++-suc' zero n = refl
++-suc' (suc m) n rewrite +-suc' m n = refl 
+
++-comm' : ∀ (m n : ℕ) → m + n ≡ n + m
++-comm' m zero rewrite +-identity' m = refl
++-comm' m (suc n) rewrite +-suc' m n | +-comm' m n = refl
+
+-- EXERCISE +-swap
