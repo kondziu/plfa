@@ -51,6 +51,8 @@ open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
 -- no commutativity 
 -- distributivity (only right)  (n - p) / m ≡ (n / m) - (n / p)
 
+
+
 -- ASSOCIATIVITY
 
 _ : (3 + 4) + 5 ≡ 3 + (4 + 5)
@@ -67,6 +69,8 @@ _ =
     3 + (4 + 5)
   ∎
 
+
+
 -- PROOF BY INDUCTION
 
 -- definition:
@@ -77,6 +81,8 @@ _ =
 --   base case: show property holds for zero
 --   inductive case: assuming property P holds for an arbitrary number m,
 --                   show that P also holds for suc m
+
+
 
 -- OUR FIRST PROOF: ASSOCIATIVITY
 
@@ -99,9 +105,9 @@ _ =
 +-assoc (suc m) n p =
   begin
     ((suc m) + n) + p 
-  ≡⟨⟩                -- because inductive case: (suc m) + n = suc (m + n)
+  ≡⟨⟩                -- because inductive case of addition: (suc m) + n = suc (m + n)
     suc (m + n) + p
-  ≡⟨⟩                -- likewise
+  ≡⟨⟩                -- because reverse inductive case of addition
     suc ((m + n) + p)
   ≡⟨ cong suc (+-assoc m n p) ⟩ -- we provide a JUSTIFICATION
                                 -- using the CONGRUENCE relation
@@ -129,7 +135,11 @@ _ =
 --       also it looks like a jellyfish
 --       ≡⟨...⟩ is a jellyfish with a big thought
 
+
+
 -- INDUCTION AS RECURSION
+
+
 
 -- TERMINOLOGY AND NOTATION
 
@@ -140,25 +150,30 @@ _ =
 
 -- functions with universally quantified arguments are DEPENDENT FUNCTIONS
 
+
+
 -- OUR SECOND PROOF: COMMUTATIVITY
 -- LEMMA: zero is a left-identity
 
-+-identity⃗ : ∀ (m : ℕ) → m + zero ≡ m   -- QUESTION \^r produces ⃗ ?
++-identity⃗ : ∀ (m : ℕ) → m + zero ≡ m   -- QUESTION \^r produces ⃗ ? SOLVED!
 +-identity⃗ zero =
   begin                          -- base case is best case
     zero + zero
-  ≡⟨⟩
+  ≡⟨ refl ⟩                       -- the book didn't say anything about C-l
     zero
    ∎
 +-identity⃗ (suc m) =            -- so basically we're trying to get to 
   begin                          -- suc ::lhs of initial proposion::
     (suc m) + zero               -- so that we can end up with   
-  ≡⟨⟩                             -- suc ::rhs of initial proposition::
-    suc (m + zero)
-  --≡⟨ {!cong suc ?!} ⟩   
-  ≡⟨ cong suc (+-identity⃗ m) ⟩
+  ≡⟨ refl ⟩                             -- suc ::rhs of initial proposition::
+    suc (m + zero)   
+  ≡⟨ cong suc (+-identity⃗ m) ⟩        -- magic spell: C-c C-z, C-c C-SPC
     suc m
-  ∎
+  ∎ 
+-- C-c C-d
+-- ≡⟨⟩           <=>          ≡⟨ refl ⟩
+
+
 
 -- LEMMA: m + suc n ≡ suc (m + n) by analogy to suc m + n ≡ suc (m + n)
 
@@ -182,6 +197,8 @@ _ =
     suc ((suc m) + n)
   ∎
 
+
+
 -- PROPOSITION
 
 +-comm : ∀ (m n : ℕ) → m + n ≡ n + m
@@ -202,6 +219,8 @@ _ =
   ≡⟨⟩                           -- from reverse of base case of naturals
     (suc n) + m                 -- ends with the rhs of +-comm
   ∎
+
+
 
 -- CCOORROOLLAARRYY: rearranging
 
@@ -224,7 +243,7 @@ _ =
 
 -- EXERCISE finite-+-assoc
 
--- TODO
+
 
 -- ASSOCIATIVITY WITH REWRITE
 
@@ -247,6 +266,9 @@ _ =
 --+-comm' m zero rewrite +-identity' m = refl
 --+-comm' m (suc n) rewrite +-suc' m n | +-comm' m n = refl
 
+
+
+
 -- BUILDING PROOFS INTERACTIVELY
 
 +-assoc' : ∀ (m n p : ℕ) → (m + n) + p ≡ m + (n + p)
@@ -268,4 +290,110 @@ _ =
 +-comm' m zero rewrite +-identity' m = refl
 +-comm' m (suc n) rewrite +-suc' m n | +-comm' m n = refl
 
+
+
+
 -- EXERCISE +-swap
+
++-swap : ∀ (m n p : ℕ) → m + (n + p) ≡ n + (m + p)
+-- +-swap m n p =
+--   begin
+--     m + (n + p)
+--   ≡⟨ sym (+-assoc m n p) ⟩
+--     (m + n) + p
+--   ≡⟨ cong (_+ p) (+-comm m n) ⟩
+--     (n + m) + p
+--   ≡⟨ +-assoc n m p ⟩
+--     n + (m + p)
+--   ∎
+
+-- +-swap m n p rewrite +-assoc m n p | (cong (_+ p) (+-comm m n)) | +-assoc n m p = {!!} -- ?????????
+
++-swap m n p rewrite (sym (+-assoc m n p)) | +-comm m n | +-assoc n m p = refl
+--+-swap m n p rewrite (sym (+-assoc m n p)) = {!!}
+
+-- every time I think agda will do something smart for me, it turns out I need to do it by hand...
+
+
+
+
+-- EXERCISE *-distrib-+
+
+--*-distrib-+ : ∀ (m n p : ℕ) → (m + n) * p ≡ m * p + n * p
+
+*-distrib-+' : ∀ (m n p : ℕ) → p * (m + n) ≡ p * n + p * m
+*-distrib-+' m n zero = refl
+*-distrib-+' m n (suc p) rewrite *-distrib-+' m n p                                 -- m + n + (p * n + p * m)
+                               | cong ((m + n) +_) (+-comm (p * n) (p * m))         -- m + n + (p * m + p * n)
+                               | sym (+-assoc (m + n) (p * m) (p * n))              -- ((m + n) + (p * m)) + p * n
+                               | cong (_+ (p * n)) (+-assoc m n (p * m))            -- (m + (n + (p * m))) + p * n
+                               | cong (_+ (p * n)) (cong (m +_) (+-comm n (p * m))) -- (m + ((p * m) + n)) + p * n
+                               | cong (_+ (p * n)) (sym (+-assoc m (p * m) n))      -- ((m + (p * m)) + n) + (p * n)
+                               | +-assoc (m + (p * m)) n (p * n)                    -- (m + (p * m)) + (n + (p * n))
+                                                                                    -- ((suc p) * m) + ((suc p) * n)
+                               | +-comm ((suc p) * m) ((suc p) * n)                 -- (suc p) * n + (suc p) * m
+                               = refl                                            
+--                             =
+--                             begin
+--                              p * (m + n) 
+--                             ≡⟨ .. ⟩
+--                               m + n + (p * n + p * m)
+--                             ≡⟨ ... ⟩
+--                               m + n + (p * m + p * n)
+--                             ≡⟨ sym (+-assoc (m + n) (p * m) (p * n))  ⟩
+--                               ((m + n) + (p * m)) + p * n
+--                             ≡⟨ cong (_+ (p * n)) (+-assoc m n (p * m)) ⟩
+--                               (m + (n + (p * m))) + p * n
+--                             ≡⟨ cong (_+ (p * n)) (cong (m +_) (+-comm n (p * m))) ⟩
+--                               (m + ((p * m) + n)) + p * n
+--                             ≡⟨ cong (_+ (p * n)) (sym (+-assoc m (p * m) n)) ⟩
+--                               ((m + (p * m)) + n) + (p * n)
+--                             ≡⟨ +-assoc (m + (p * m)) n (p * n) ⟩
+--                               (m + (p * m)) + (n + (p * n))
+--                             ≡⟨⟩
+--                               ((suc p) * m) + ((suc p) * n)
+--                             ≡⟨ +-comm ((suc p) * m) ((suc p) * n) ⟩
+--                               (suc p) * n + (suc p) * m
+--                            ∎
+
+--*-comm : ∀ (m n : ℕ) → m * n ≡ n * m
+--*-comm zero m =
+--  begin
+--    zero * m
+--  ≡⟨⟩
+--    zero * (zero + m)
+--  ≡⟨ cong (zero *_) (+-comm zero m) ⟩
+--    zero * (m + zero)
+  -- *-distrib-+' : ∀ (m n p : ℕ) → p * (m + n) ≡ p * n + p * m
+--  ≡⟨ *-distrib-+' m zero zero ⟩
+--    (zero * zero) + (m * zero)  
+  --≡⟨ +-comm (zero * zero) (zero * m) ⟩
+  --  (zem) + (zero * zero)
+--  ≡⟨⟩
+--    m + zero * zero
+--  ≡⟨⟩
+--    m * zero
+--  ∎
+
+-- *-assoc' : ∀ (m n p : ℕ) → (m * n) * p ≡ m * (n * p)
+-- *-assoc' m n zero = refl
+
+*-assoc : ∀ (m n p : ℕ) → m * (n * p) ≡ (m * n) * p
+*-assoc zero n p = refl                              
+--*-assoc (suc m) n p  =
+--  begin
+--    (suc m) * (n * p)
+--  ≡⟨⟩
+--    (n * p) + (m * (n * p))
+--  ≡⟨ cong ((n * p) +_) (*-assoc m n p)  ⟩
+--    (n * p) + ((m * n) * p)
+--  ≡⟨ +-comm (n * p) ((m * n) * p) ⟩
+--    ((m * n) * p) + (n * p)
+--  --≡⟨  ⟩
+--         
+--  ≡⟨⟩
+--    ((suc m) * n) * p
+--  ∎
+--
+
+-- install "which keys" from GH
