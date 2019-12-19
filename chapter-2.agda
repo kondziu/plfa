@@ -5,7 +5,7 @@
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; cong; sym)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_; _^_)
 
 -- left identity C:               C op n ≡ n
 -- right identity C:              n op C ≡ n
@@ -378,8 +378,8 @@ _ =
 -- *-assoc' : ∀ (m n p : ℕ) → (m * n) * p ≡ m * (n * p)
 -- *-assoc' m n zero = refl
 
-*-assoc : ∀ (m n p : ℕ) → m * (n * p) ≡ (m * n) * p
-*-assoc zero n p = refl                              
+--*-assoc : ∀ (m n p : ℕ) → m * (n * p) ≡ (m * n) * p
+--*-assoc zero n p = refl                              
 --*-assoc (suc m) n p  =
 --  begin
 --    (suc m) * (n * p)
@@ -394,6 +394,396 @@ _ =
 --  ≡⟨⟩
 --    ((suc m) * n) * p
 --  ∎
---
 
 -- install "which keys" from GH
+-- goodgmenet should be a word
+
+
+
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+---                 ----------------------------------------------------------------
+--- A NEW BEGINNING ----------------------------------------------------------------
+---                 ----------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+
+*-identity⃗ : ∀ (m : ℕ) → m * zero ≡ zero
+*-identity⃗ zero = refl
+*-identity⃗ (suc m) =
+  begin
+    (suc m) * zero
+  ≡⟨⟩
+    zero + (m * zero)
+  ≡⟨ cong (zero +_) (*-identity⃗ m) ⟩
+    zero + zero
+  ≡⟨⟩
+    zero
+  ∎
+
+*-suc : ∀ (m n : ℕ) → m * (suc n) ≡ m + (m * n)
+*-suc zero n =
+  begin 
+    zero * (suc n)
+  ≡⟨⟩
+    zero
+  ≡⟨⟩
+    zero + zero
+  ≡⟨⟩
+    zero + (zero * n)
+  ∎
+*-suc (suc m) n =
+  begin
+    (suc m) * (suc n)
+  ≡⟨⟩
+    (suc n) + (m * (suc n))
+  ≡⟨ cong ((suc n) +_) (*-suc m n) ⟩
+    (suc n) + (m + (m * n))
+  ≡⟨ sym (+-assoc (suc n) m (m * n)) ⟩
+    ((suc n) + m) + (m * n)
+  ≡⟨⟩
+    suc (n + m) + (m * n)
+  ≡⟨ cong (_+ (m * n)) (cong (suc) (+-comm n m)) ⟩
+    suc(m + n) + (m * n)
+  ≡⟨⟩
+    ((suc m) + n) + (m * n)
+  ≡⟨ +-assoc (suc m) n (m * n) ⟩
+    (suc m) + (n + (m * n))
+  ≡⟨⟩
+    (suc m) + ((suc m) * n)
+  ∎
+
+*-distrib-+ : ∀ (m n p : ℕ) → (m + n) * p ≡ m * p + n * p
+*-distrib-+ m n zero =
+  begin 
+    (m + n) * zero
+  ≡⟨ *-identity⃗ (m + n) ⟩
+    zero
+  ≡⟨⟩
+    zero + zero
+  ≡⟨ cong (zero +_) (sym (*-identity⃗ n)) ⟩
+    zero + n * zero
+  ≡⟨ cong (_+ (n * zero)) (sym (*-identity⃗ m))  ⟩
+    m * zero + n * zero    
+  ∎
+*-distrib-+ m n (suc p) =
+  begin
+    (m + n) * (suc p)    
+  ≡⟨ *-suc (m + n) p ⟩
+    (m + n) + (m + n) * p
+  ≡⟨ cong ((m + n) +_) (*-distrib-+ m n p) ⟩
+    (m + n) + (m * p + n * p)
+  ≡⟨ +-assoc m n (m * p + n * p)  ⟩
+    m + (n + (m * p + n * p))
+  ≡⟨ cong (m +_) (cong (n +_) (+-comm (m * p) (n * p)))  ⟩
+    m + (n + (n * p + m * p))
+  ≡⟨ cong (m +_) (sym (+-assoc n (n * p) (m * p)))  ⟩
+    m + ((n + (n * p)) + m * p)
+  ≡⟨ cong (m +_) (+-comm (n + (n * p)) (m * p))  ⟩
+    m + ((m * p) + (n + (n * p)))
+  ≡⟨ sym (+-assoc m (m * p) (n + (n * p))) ⟩
+    (m + (m * p)) + (n + (n * p))
+  ≡⟨ cong ((m + (m * p)) +_) (sym (*-suc n p)) ⟩
+    (m + (m * p)) + (n * (suc p))
+  ≡⟨ cong (_+ (n * (suc p))) (sym (*-suc m p)) ⟩
+    (m * (suc p)) + (n * (suc p))
+  ∎
+
+-- recurse over m
+*-assoc : ∀ (m n p : ℕ) → (m * n) * p ≡ m * (n * p)
+*-assoc zero n p = refl
+*-assoc (suc m) n p =
+  begin
+    ((suc m) * n) * p
+  ≡⟨⟩
+    (n + (m * n)) * p
+  ≡⟨ *-distrib-+ n (m * n) p ⟩
+    (n * p) + ((m * n) * p)
+  ≡⟨ cong ((n * p) +_) (*-assoc m n p) ⟩
+    (n * p) + (m * (n * p))               
+  ≡⟨⟩
+    (suc m) * (n * p)
+  ∎
+  
+*-comm : ∀ (m n : ℕ) → m * n ≡ n * m
+*-comm zero n =
+  begin
+    zero * n
+  ≡⟨⟩
+    zero    
+  ≡⟨ sym (*-identity⃗ n) ⟩
+    n * zero
+  ∎
+*-comm (suc m) n =
+  begin
+    (suc m) * n
+  ≡⟨⟩
+    n + (m * n)
+  ≡⟨ cong (n +_) (*-comm m n) ⟩
+    n + (n * m)  
+  ≡⟨ sym (*-suc n m) ⟩
+    n * (suc m)
+  ∎
+  
+-- zero may be a left-annihilator for monus
+0∸n≡0 : ∀ (n : ℕ) → zero ∸ n ≡ zero
+0∸n≡0 zero = refl
+0∸n≡0 (suc n) = refl
+--                                                           QUESTION: Why doesn't 0∸n≡0 n = refl work?
+
+
+∸-+-assoc : ∀ (m n p : ℕ) → m ∸ n ∸ p ≡ m ∸ (n + p)
+∸-+-assoc zero n p = 
+  begin
+    (zero ∸ n) ∸ p
+  ≡⟨ cong (_∸ p) (0∸n≡0 n) ⟩
+    zero ∸ p
+  ≡⟨ 0∸n≡0 p ⟩
+    zero
+  ≡⟨ sym (0∸n≡0 (n + p))  ⟩
+    zero ∸ (n + p)
+  ∎
+∸-+-assoc (suc m) (suc n) p = -- we have to recurse over two, because that's how the definition of ∸ works
+  begin
+    (suc m) ∸ (suc n) ∸ p
+  ≡⟨⟩
+    m ∸ n ∸ p
+  ≡⟨ ∸-+-assoc m n p ⟩
+    m ∸ (n + p)
+  ∎
+∸-+-assoc m zero p = refl                                    -- QUESTION why gray highlight?
+
+
+
+
+-- had to go back to the top and import _^_ at this point!
+
+-- this turned out to be unnecessary when I picked the "right" variable to split on
+--^-zero : ∀ (m : ℕ) → zero ^ m ≡ zero
+--^-zero zero = refl 
+
+^-distrib-+ : ∀ (m n p : ℕ) → m ^ (n + p) ≡ (m ^ n) * (m ^ p)   
+--^-distrib-+ zero n p rewrite ^-zero (n + p) =  
+--  begin
+--    zero * zero
+--  ≡⟨ cong (_* zero) (sym (^-zero n)) ⟩
+--    (zero ^ n) * zero
+--  ≡⟨ cong ((zero ^ n) *_) (sym (^-zero p)) ⟩
+--    (zero ^ n) * (zero ^ p)
+--  ∎
+
+-- QUESTION: why didn't this work
+-- ^-distrib-+ zero n p rewrite ^-zero (n + p) =                        --          ≡ zero
+--                           -- trivially                               --          ≡ zero * zero
+--                            | cong (_* zero) (sym (^-zero n))         --          ≡ (zero ^ n) * zero
+--                            | cong ((zero ^ n) *_) (sym (^-zero p))   --          ≡ (zero ^ n) * (zero ^ p)
+--                            = refl                                    -- end goal:  (zero ^ n) * (zero ^ p)
+
+*-identity-1 : ∀ (m : ℕ) → (suc zero) * m ≡ m
+*-identity-1 zero = refl
+*-identity-1 (suc m) rewrite *-identity-1 m = refl
+
+^-distrib-+ m (suc n) p =                                               -- starting:   m ^ ((suc n) + p)
+                                                                        -- end goal:   (m ^ (suc n)) * (m ^ p)
+  begin
+    m ^ ((suc n) + p)
+  ≡⟨⟩
+    m ^ (suc (n + p))
+  ≡⟨⟩
+    m * m ^ (n + p)
+  ≡⟨ cong (m *_) (^-distrib-+ m n p) ⟩
+    m * (m ^ n * m ^ p)
+  ≡⟨ sym (*-assoc m (m ^ n) (m ^ p)) ⟩
+    m * m ^ n * m ^ p
+  ≡⟨⟩
+    (m ^ (suc n) * (m ^ p))
+  ∎
+^-distrib-+ m zero p =
+  begin
+    m ^ (zero + p)
+  ≡⟨⟩
+    m ^ p
+  ≡⟨ sym (*-identity-1 (m ^ p)) ⟩
+    (suc zero) * m ^ p 
+  ≡⟨⟩
+    m ^ zero * m ^ p
+  ∎
+
+^-distrib-* : ∀ (m n p : ℕ) → (m * n) ^ p ≡ (m ^ p) * (n ^ p)
+^-distrib-* m n (suc p) rewrite ^-distrib-* m n p =        -- (m * n) * ((m ^ p) * (n ^ p))
+  begin
+    (m * n) * ((m ^ p) * (n ^ p))
+  ≡⟨ *-assoc m n ((m ^ p) * (n ^ p)) ⟩ 
+    m * (n * ((m ^ p) * (n ^ p)))
+  ≡⟨ cong (m *_) (cong (n *_) (*-comm (m ^ p) (n ^ p))) ⟩
+    m * (n * ((n ^ p) * (m ^ p)))
+  ≡⟨ cong (m *_) (sym (*-assoc n (n ^ p) (m ^ p))) ⟩
+    m * ((n * n ^ p) * m ^ p)
+  ≡⟨ cong (m *_) (*-comm (n * n ^ p) (m ^ p)) ⟩
+    m * (m ^ p * (n * n ^ p))
+  ≡⟨ sym (*-assoc m (m ^ p) (n * (n ^ p))) ⟩
+    (m * m ^ p) * (n * (n ^ p))
+  ≡⟨⟩
+    (m ^ (suc p)) * (n ^ (suc p))
+  ∎
+^-distrib-* m n zero = refl
+                                                                         
+^*-distrib-^ : ∀ (m n p : ℕ) → m ^ (n * p) ≡ (m ^ n) ^ p
+^*-distrib-^ m n zero =
+  begin
+    m ^ (n * zero)
+  ≡⟨ cong (m ^_) (*-comm n zero) ⟩
+    m ^ (zero * n)
+  ≡⟨⟩
+    m ^ zero
+  ≡⟨⟩
+    (m ^ n) ^ zero
+  ∎
+^*-distrib-^ m n (suc p) =
+  begin
+    m ^ (n * (suc p))
+  ≡⟨ cong (m ^_) (*-comm n (suc p)) ⟩
+    m ^ ((suc p) * n)
+  ≡⟨⟩
+    m ^ (n + p * n)
+  ≡⟨ ^-distrib-+ m n (p * n) ⟩
+    m ^ n * m ^ (p * n)
+  ≡⟨ cong ((m ^ n) *_) (cong (m ^_) (*-comm p n)) ⟩
+    m ^ n * m ^ (n * p)
+  ≡⟨ cong ((m ^ n) *_) ( ^*-distrib-^ m n p) ⟩
+    m ^ n * ((m ^ n) ^ p)
+  ≡⟨⟩
+    (m ^ n) ^ (suc p)
+  ∎
+
+-- Copying over Bin functions
+data Bin : Set where
+  ⟨⟩ : Bin
+  _O : Bin → Bin
+  _I : Bin → Bin
+  
+inc : Bin → Bin
+inc ⟨⟩ = ⟨⟩ I
+inc (p O) = p I
+inc (p I) = (inc p) O
+
+from : Bin → ℕ
+from ⟨⟩ = 0         -- QUESTION
+from (p O) = 2 * (from p)
+from (p I) = 2 * (from p) + 1
+
+to : ℕ → Bin
+to 0 = ⟨⟩ O
+to (suc n)  = inc (to n)
+--
+
+--from (inc b) ≡ suc (from b)
+--to (from b) ≡ b
+--from (to n) ≡ n
+
+from-inc≡suc-from : ∀ (b : Bin) → from (inc b) ≡ suc (from b)
+from-inc≡suc-from ⟨⟩ = refl
+from-inc≡suc-from (b O) =
+  begin
+    from (inc (b O))
+  ≡⟨⟩
+    from (b I)
+  ≡⟨⟩
+    2 * (from b) + 1
+  ≡⟨ +-comm (2 * (from b)) 1 ⟩
+   1 + (2 * (from b))
+  ≡⟨⟩
+    suc (2 * (from b))
+  ≡⟨⟩
+    suc (from (b O))
+  ∎
+from-inc≡suc-from (b I) =
+  begin
+    from (inc (b I))
+  ≡⟨⟩
+    from ((inc b) O)
+  ≡⟨⟩
+    2 * (from (inc b))
+  ≡⟨ cong (2 *_) (from-inc≡suc-from b) ⟩
+    2 * (suc (from b))
+  ≡⟨ *-comm 2 (suc (from b)) ⟩
+    (suc (from b)) * 2
+  ≡⟨⟩
+    2 + ((from b) * 2)
+  ≡⟨⟩
+    suc (1 + ((from b) * 2))
+  ≡⟨ cong (1 +_) (+-comm 1 ((from b) * 2)) ⟩
+    suc ((from b) * 2 + 1)
+  ≡⟨ cong (1 +_) (cong (_+ 1) (*-comm (from b) 2)) ⟩
+    suc (2 * (from b) + 1)
+  ≡⟨⟩
+    suc (from (b I))
+  ∎
+
+--to-from : ∀ (b : Bin) → to (from b) ≡ b
+--to-from ⟨⟩ =
+--  begin
+--    to (from ⟨⟩)
+--  ≡⟨⟩
+--    to 0
+--  ≡⟨⟩
+--    ⟨⟩ O -- can't get from here
+--  ≡⟨⟩
+--    ⟨⟩   -- to here
+--  ∎
+-- to-from (b O) = {!!}
+-- to-from (b I) = {!!}
+
+-- counter-example: to (from ⟨⟩) ≡/≡ ⟨⟩ because ⟨⟩ O ≡/≡ ⟨⟩
+
+from-inc : ∀ (b : Bin) → from (inc b) ≡ suc (from b)
+from-inc ⟨⟩ = refl
+from-inc (p O) =
+  begin
+    from (inc (p O))
+  ≡⟨⟩
+    from (p I)
+  ≡⟨⟩
+    2 * (from p) + 1
+  ≡⟨ +-comm (2 * (from p)) 1 ⟩
+    1 + (2 * (from p))
+  ≡⟨⟩
+    suc (2 * (from p))
+  ≡⟨⟩
+    suc (from (p O))
+  ∎
+from-inc (p I) =
+  begin
+    from (inc (p I))
+  ≡⟨⟩
+    from ((inc p) O)
+  ≡⟨⟩
+    2 * (from (inc p))
+  ≡⟨ cong (2 *_) (from-inc p) ⟩
+    2 * (suc (from p))
+  ≡⟨ *-comm 2 (suc (from p)) ⟩
+    (suc (from p)) * 2
+  ≡⟨⟩
+    2 + (from p) * 2
+  ≡⟨ cong (2 +_) (*-comm (from p) 2) ⟩
+    2 + 2 * (from p)
+  ≡⟨⟩
+    suc (1 + (2 * (from p)))
+  ≡⟨ cong suc (+-comm 1 (2 * (from p))) ⟩
+    suc ((2 * (from p)) + 1)
+  ≡⟨⟩
+    suc (from (p I))
+  ∎
+
+from-to : ∀ (n : ℕ) → from (to n) ≡ n
+from-to zero = refl
+from-to (suc n) =
+  begin
+    from (to (suc n))
+  ≡⟨⟩
+    from (inc (to n))
+  ≡⟨ from-inc (to n) ⟩
+    suc (from (to n))
+  ≡⟨ cong suc (from-to n) ⟩
+    suc n
+  ∎
