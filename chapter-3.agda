@@ -4,6 +4,10 @@ open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties using (+-comm)
 
 data _≤_ : ℕ → ℕ → Set where  -- this is important:
+                                 -- R: "Read 'Set' as 'Proposition'"
+                                 -- R: "The meaning of this construct is described by the
+                                 --     constructors"
+
                                  -- the two constructors below describe how this
                                  -- data type operates, this statement ties them
                                  -- together into a "data type?"
@@ -23,8 +27,6 @@ data _≤_ : ℕ → ℕ → Set where  -- this is important:
                                  --   that m ≤ n
                                  --   then I will produce for you the evidence
                                  --   that suc m ≤ suc n
-                                 
-
 
 -- these constructors produce evidence for the propositions
 
@@ -328,9 +330,17 @@ data _<_ : ℕ → ℕ → Set where
 
 
 ≤-<-equiv : ∀ (m n : ℕ) → (suc m ≤ n) ≡ (m < n) -- TODO
-
 --<-≤-equivalence m < n → suc m ≤ n
 
-<-trans : ∀ {m n p} → m < n → n < p → m < p
+<-trans : ∀ {m n p} → m < n → n < p → m < p 
 <-trans z<s n<p = {!z<s !}
 <-trans (s<s m<n) n<p = {!!}
+
+
+-- TODO examine the case of minus
+minus : ∀ (n m : ℕ) → m ≤ n → ℕ
+
+minus' = ∀ {n m : ℕ} → m ≤ n → ℕ
+
+-- Auto-fill solution: C-c C-a
+-- Take me to the definition: M-.
