@@ -329,18 +329,48 @@ data _<_ : ℕ → ℕ → Set where
   s<s : ∀ {m n : ℕ} → m < n → suc m < suc n
 
 
-≤-<-equiv : ∀ (m n : ℕ) → (suc m ≤ n) ≡ (m < n) -- TODO
+--≤-<-equiv : ∀ (m n : ℕ) → (suc m ≤ n) ≡ (m < n) -- TODO
 --<-≤-equivalence m < n → suc m ≤ n
 
-<-trans : ∀ {m n p} → m < n → n < p → m < p 
-<-trans z<s n<p = {!z<s !}
-<-trans (s<s m<n) n<p = {!!}
+<-trans : ∀ {m n p : ℕ} → m < n → n < p → m < p 
+<-trans z<s (s<s n<p) = z<s
+<-trans (s<s m<n) (s<s n<p) = s<s (<-trans m<n n<p)
+
+<-⇒-≤ : ∀ {m n : ℕ} → m < n → (suc m) ≤ n
+<-⇒-≤ z<s = s≤s z≤n
+<-⇒-≤ (s<s m<n) = s≤s (<-⇒-≤ m<n)
+
+<-trans' : ∀ {m n p : ℕ} → m < n → n < p → m < p
+<-trans' {m} {n} {p} m<n n<p = ≤-⇒-< m p sm≤p
+  where
+    -- m<n : m < n
+    -- n<p : n < p
+    
+    sm≤n : (suc m) ≤ n
+    sm≤n = <-⇒-≤ m<n
+    
+    sn≤p : (suc n) ≤ p
+    sn≤p = <-⇒-≤ n<p
+
+    n≤sn : n ≤ suc n
+    n≤sn = +-mono-≤ zero (suc zero) n n z≤n ≤-refl
+
+    sm≤p : (suc m) ≤ p
+    sm≤p = ≤-trans sm≤n (≤-trans n≤sn sn≤p)   
+
+    ≤-⇒-< : ∀ (m n : ℕ) → suc m ≤ n → m < n
+    ≤-⇒-< zero zero ()
+    ≤-⇒-< zero (suc n) (s≤s sm≤n₁) = z<s
+    ≤-⇒-< (suc m) zero ()
+    ≤-⇒-< (suc m) (suc n) (s≤s sm≤n₁) = s<s (≤-⇒-< m n sm≤n₁)
+    
+
+--data Trichotomy : ∀ (n m : ℕ) → Set
 
 
 -- TODO examine the case of minus
 minus : ∀ (n m : ℕ) → m ≤ n → ℕ
-
-minus' = ∀ {n m : ℕ} → m ≤ n → ℕ
+minus' : ∀ {n m : ℕ} → m ≤ n → ℕ
 
 -- Auto-fill solution: C-c C-a
 -- Take me to the definition: M-.
