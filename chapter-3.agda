@@ -362,10 +362,52 @@ data _<_ : ℕ → ℕ → Set where
     ≤-⇒-< zero zero ()
     ≤-⇒-< zero (suc n) (s≤s sm≤n₁) = z<s
     ≤-⇒-< (suc m) zero ()
-    ≤-⇒-< (suc m) (suc n) (s≤s sm≤n₁) = s<s (≤-⇒-< m n sm≤n₁)
-    
+    ≤-⇒-< (suc m) (suc n) (s≤s sm≤n₁) = s<s (≤-⇒-< m n sm≤n₁)  
 
---data Trichotomy : ∀ (n m : ℕ) → Set
+data Trichotomy : ∀ (n m : ℕ) → Set where
+
+    lesser  : ∀ (n m : ℕ) → n < m → Trichotomy n m
+    equal   : ∀ (n m : ℕ) → n ≡ m → Trichotomy n m
+    greater : ∀ (n m : ℕ) → m < n → Trichotomy n m
+
+inv-s<s : ∀ {n m : ℕ} → suc n < suc m → n < m
+--inv-z<s : ∀ {n m : ℕ} → zero < suc n → zero < n
+
+<-trichotomy : ∀ (n m : ℕ) → Trichotomy n m
+<-trichotomy zero zero = equal zero zero refl
+<-trichotomy zero (suc m) = lesser zero (suc m) z<s
+<-trichotomy (suc n) zero = greater (suc n) zero z<s
+<-trichotomy (suc n) (suc m) = <-trichotomy-helper (<-trichotomy n m)
+  where
+    <-trichotomy-helper : Trichotomy n m → Trichotomy (suc n) (suc m)
+    <-trichotomy-helper (lesser  n m n<m) = lesser (suc n) (suc m) (s<s n<m)
+    <-trichotomy-helper (equal   n m n≡m) = equal (suc n) (suc m) (cong suc n≡m)
+    <-trichotomy-helper (greater n m m<n) = greater (suc n) (suc m) (s<s m<n)
+    
+-- This is what C-c C-a did for me:
+--    <-trichotomy-helper (lesser .0 .(suc _) z<s) = lesser 1 (suc (suc n)) (s<s z<s)
+--    <-trichotomy-helper (lesser .(suc _) .(suc _) (s<s x)) = lesser (suc (suc m)) (suc (suc n)) (s<s (s<s x))
+--    <-trichotomy-helper (equal n .n refl) = equal (suc m) (suc m) refl
+--    <-trichotomy-helper (greater .(suc _) .0 z<s) = greater (suc (suc n)) 1 (s<s z<s)
+--    <-trichotomy-helper (greater .(suc _) .(suc _) (s<s x)) = greater (suc (suc n)) (suc (suc m)) (s<s (s<s x)) 
+
+
++-mono-< : ∀ (m n p q : ℕ) → m < n → p < q → m + p < n + q
++-mono-< m n p q m<n p<q = <-trans (+-mono-<ˡ m n p m<n) {!+-mono-<ʳ n p q p<q!}
+
+  where
+    +-mono-<ʳ : ∀ (n p q : ℕ) → p < q → n + p < n + q
+    +-mono-<ʳ zero p q p<q = p<q
+    +-mono-<ʳ (suc n) p q p<q = s<s (+-mono-<ʳ n p q p<q)
+    
+    +-mono-<ˡ : ∀ (m n p : ℕ) → m < n → m + p < n + p
+    +-mono-<ˡ m n p m<n rewrite +-comm m p | +-comm n p = +-mono-<ʳ p m n m<n
+
+
+
+
+
+
 
 
 -- TODO examine the case of minus
