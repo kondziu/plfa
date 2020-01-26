@@ -340,6 +340,12 @@ data _<_ : ℕ → ℕ → Set where
 <-⇒-≤ z<s = s≤s z≤n
 <-⇒-≤ (s<s m<n) = s≤s (<-⇒-≤ m<n)
 
+≤-⇒-< : ∀ (m n : ℕ) → suc m ≤ n → m < n
+≤-⇒-< zero zero ()
+≤-⇒-< zero (suc n) (s≤s sm≤n₁) = z<s
+≤-⇒-< (suc m) zero ()
+≤-⇒-< (suc m) (suc n) (s≤s sm≤n₁) = s<s (≤-⇒-< m n sm≤n₁)  
+
 <-trans' : ∀ {m n p : ℕ} → m < n → n < p → m < p
 <-trans' {m} {n} {p} m<n n<p = ≤-⇒-< m p sm≤p
   where
@@ -358,11 +364,6 @@ data _<_ : ℕ → ℕ → Set where
     sm≤p : (suc m) ≤ p
     sm≤p = ≤-trans sm≤n (≤-trans n≤sn sn≤p)   
 
-    ≤-⇒-< : ∀ (m n : ℕ) → suc m ≤ n → m < n
-    ≤-⇒-< zero zero ()
-    ≤-⇒-< zero (suc n) (s≤s sm≤n₁) = z<s
-    ≤-⇒-< (suc m) zero ()
-    ≤-⇒-< (suc m) (suc n) (s≤s sm≤n₁) = s<s (≤-⇒-< m n sm≤n₁)  
 
 data Trichotomy : ∀ (n m : ℕ) → Set where
 
@@ -393,7 +394,7 @@ inv-s<s : ∀ {n m : ℕ} → suc n < suc m → n < m
 
 
 +-mono-< : ∀ (m n p q : ℕ) → m < n → p < q → m + p < n + q
-+-mono-< m n p q m<n p<q = <-trans (+-mono-<ˡ m n p m<n) {!+-mono-<ʳ n p q p<q!}
++-mono-< m n p q m<n p<q = <-trans (+-mono-<ˡ m n p m<n) (+-mono-<ʳ n p q p<q)
 
   where
     +-mono-<ʳ : ∀ (n p q : ℕ) → p < q → n + p < n + q
@@ -403,12 +404,37 @@ inv-s<s : ∀ {n m : ℕ} → suc n < suc m → n < m
     +-mono-<ˡ : ∀ (m n p : ℕ) → m < n → m + p < n + p
     +-mono-<ˡ m n p m<n rewrite +-comm m p | +-comm n p = +-mono-<ʳ p m n m<n
 
+--≤-iff-< : ∀ {m n : ℕ} → ?
+
+data even : ℕ → Set
+data odd  : ℕ → Set
+
+data even where
+  zero : even zero                           
+  sucE  : ∀ {n : ℕ} → odd n → even (suc n)      
+
+data odd where
+  sucO : ∀ {n : ℕ} → even n → odd (suc n)
+
+e+e≡e : ∀ {m n : ℕ} → even m → even n → even (m + n)
+o+e≡o : ∀ {m n : ℕ} → odd m → even n → odd (m + n)
+
+e+e≡e zero en = en
+e+e≡e (sucE om) en = sucE (o+e≡o om en)
+o+e≡o (sucO em) en = sucO (e+e≡e em en)
+
+e+o≡o : ∀ {m n : ℕ} → even m → odd n → odd (m + n)
+e+o≡o {m} {n} em on rewrite +-comm m n = {!o+e≡o on em!}
+
+o+o≡e : ∀ {m n : ℕ} → odd m → odd n → even (m + n)
+o+o≡e (sucO zero) (sucO zero) = sucE (sucO zero)
+
+--o+o≡e (sucO em) on = sucE {!!}  -- even (sucO em + on) 
+o+o≡e {m} {n} om (sucO en) rewrite +-comm m n = sucE (e+o≡o en om) -- even (om + sucO en)
 
 
 
-
-
-
+    
 
 -- TODO examine the case of minus
 minus : ∀ (n m : ℕ) → m ≤ n → ℕ
