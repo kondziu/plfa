@@ -424,17 +424,71 @@ e+e≡e (sucE om) en = sucE (o+e≡o om en)
 o+e≡o (sucO em) en = sucO (e+e≡e em en)
 
 e+o≡o : ∀ {m n : ℕ} → even m → odd n → odd (m + n)
-e+o≡o {m} {n} em on rewrite +-comm m n = {!o+e≡o on em!}
+e+o≡o {m} {n} em on rewrite +-comm m n = o+e≡o on em
 
 o+o≡e : ∀ {m n : ℕ} → odd m → odd n → even (m + n)
 o+o≡e (sucO zero) (sucO zero) = sucE (sucO zero)
 
---o+o≡e (sucO em) on = sucE {!!}  -- even (sucO em + on) 
 o+o≡e {m} {n} om (sucO en) rewrite +-comm m n = sucE (e+o≡o en om) -- even (om + sucO en)
 
+data Bin : Set where
+  ⟨⟩ : Bin
+  _O : Bin → Bin
+  _I : Bin → Bin
 
+inc : Bin → Bin
+inc ⟨⟩ = ⟨⟩ I
+inc (p O) = p I
+inc (p I) = (inc p) O
 
+from : Bin → ℕ
+from ⟨⟩ = 0         -- QUESTION
+from (p O) = (from p) + (from p)
+from (p I) = (from p) + (from p) + 1
+
+to : ℕ → Bin
+to zero = ⟨⟩ O
+to (suc n)  = inc (to n)
+
+data One : Bin → Set where
+  just_I : One (⟨⟩ I)
+  I⋯I : ∀ {b : Bin} → One b → One (b I)
+  I⋯O : ∀ {b : Bin} → One b → One (b O)
+
+bin₀ = ⟨⟩ O
+bin₁ = ⟨⟩ I
+bin₂ = ⟨⟩ I I
+bin₃ = ⟨⟩ I I O
+
+p₁ = just_I
+p₂ = I⋯I p₁
+p₃ = I⋯I p₂
+
+data Can : Bin → Set where
+  just_O : Can (⟨⟩ O)
+  I⋯ : ∀ {b : Bin} → One b → Can b
+
+p₄ = just_O
+p₅ = I⋯ p₁
+p₆ = I⋯ p₂
+p₇ = I⋯ p₃ 
+
+--f : Bin → ℕ
+--f (⟨⟩ I) = 1
+--f (p I) = f (p) + 1
+--f (p O) = 0
+--f ⟨⟩ = 0
+
+inc-preserves-one : ∀ {b : Bin} → One b → One (inc b)
+inc-preserves-one just_I = I⋯O just_I
+inc-preserves-one (I⋯I oneb) = I⋯O (inc-preserves-one oneb)
+inc-preserves-one (I⋯O oneb) = I⋯I oneb
     
+inc-preserves-can : ∀ {b : Bin} → Can b → Can (inc b)
+inc-preserves-can   {⟨⟩}     canb             = I⋯ just_I
+inc-preserves-can   {⟨⟩ O}   just_O           = I⋯ just_I
+inc-preserves-can   {b O}   (I⋯ onebO)       = I⋯ (inc-preserves-one onebO)
+inc-preserves-can   {b I}   (I⋯ onebI)       = I⋯ (inc-preserves-one onebI)
 
 -- TODO examine the case of minus
 minus : ∀ (n m : ℕ) → m ≤ n → ℕ
@@ -442,3 +496,44 @@ minus' : ∀ {n m : ℕ} → m ≤ n → ℕ
 
 -- Auto-fill solution: C-c C-a
 -- Take me to the definition: M-.
+
+to-preserves-can : ∀ {n : ℕ} → Can (to n)
+to-preserves-can {zero} = just_O
+to-preserves-can {suc n} = I⋯ (can⇒one+1 (to-preserves-can {n}))
+  where
+    can⇒one+1 : ∀ {b : Bin} → Can (b) → One (inc b)
+    can⇒one+1 {⟨⟩} canb = just_I
+    can⇒one+1 {⟨⟩ O} just_O = just_I
+    can⇒one+1 {b O} (I⋯ onebO) = inc-preserves-one onebO
+    can⇒one+1 {b I} (I⋯ onebI) = inc-preserves-one onebI
+
+data NonZero : ℕ → Set where
+  non-zero : ∀ {n : ℕ} → NonZero (suc n)
+
+open import chapter-2 using (+-suc)
+
+--f : ∀ (b : Bin) → inc (b O) ≡ (b I)
+
+zero<one : ∀ {b : Bin} → One b → zero < (from b)
+
+shift : ∀ {n : ℕ} → zero < n → to (n + n) ≡ to(n) O
+shift {n} = {!!} 
+--shift {suc n} rewrite +-suc n (suc n)
+--                    | +-suc n n
+--                   = {!!}
+
+to-from≡id : ∀ {b : Bin} → Can b → to (from b) ≡ b
+to-from≡id {⟨⟩ O} just_O = refl
+to-from≡id {p O} (I⋯ (I⋯O onepO)) rewrite shift (zero<one onepO) = {!!}
+to-from≡id {⟨⟩ I} (I⋯ just_I) = {!!}
+to-from≡id {p I} (I⋯ (I⋯I onepI)) = {!!}
+
+  --where
+    
+    --_ = to (from (p I)) ≡ inc (to (2 * from(p)))
+    --_ = to (from (p I)) ≡ 
+    
+    -- (from p) + (from p)
+
+
+-- alt + . GO TO STUFF
